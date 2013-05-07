@@ -17,7 +17,7 @@ def parseArgs():
     parser.add_argument('-i',
                         dest='input',
                         type=argparse.FileType('r'),
-                        help='sklearn feature file',
+                        help='sklearn train feature file',
                         required=True)
          
     parser.add_argument('-o',
