@@ -39,14 +39,15 @@ if __name__ == "__main__":
         if label == "0":
             label = "-1"
         else:
-            label = "1"
+            label = "+1"
         features = features.split(',')
         if featureSize == -1:
             featureSize = len(features)
-            ofilex.write(str(featureSize) + '\n')
+            ofilex.write('sparse\t' + str(featureSize) + '\n')
         for i, feature in enumerate(features):
             features[i] = str(i) + ':' + feature
         ofilex.write(' '.join(features) + '\n')
+        ofiley.write(label + '\n')
     ifile.close()
     ofilex.close()
     ofiley.close()
