@@ -1,38 +1,60 @@
 #! /usr/bin/python2
 
-import argparse
+import argparse, ConfigParser
 import csv
 
 def parseArgs():
     parser = argparse.ArgumentParser(description='''\
-    example: ./genFeatures.py --datadir dir -i train.csv -o train
+    example: ./genFeatures.py feature.conf data/ train.csv train
     output: train.x train.y
-    example: ./genFeatures.py --datadir dir -i test.csv -o test
-    output: test.x test.y''',
+    example: ./genFeatures.py feature.conf data/ test.csv test
+    output: test.x test.y''', 
     formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('--datadir',
-                        dest='datadir', 
+    parser.add_argument(dest='config', 
+                        type=argparse.FileType('r'),
+                        help='configs: maxAuthorId, maxPaperId, etc.')
+    parser.add_argument(dest='datadir', 
                         type=str, 
-                        help='directory contains Author.csv, PaperAuthor.csv, etc.',
-                        required=True)
-    parser.add_argument('-i',
-                        metavar='INPUTFILE', 
+                        help='directory contains Author.csv, PaperAuthor.csv, etc.')
+    parser.add_argument(metavar='INPUTFILE', 
                         dest='ifile', 
                         type=argparse.FileType('r'),
-                        help='train.csv/valid.csv', 
-                        required=True)
-    parser.add_argument('-o',
-                        dest='outputPrefix', 
+                        help='train.csv/valid.csv')
+    parser.add_argument(dest='outputPrefix', 
                         type=str, 
-                        help='train/valid', 
-                        required=True)
+                        help='train/valid')
     return parser.parse_args()
+
+def genCoauthorFeatures(instances, paperAuthorList, maxAuthorId):
+    d = {}
+    for line in paperAuthorList:
+        d.setdefault(line[0], [])
+        d[line[0]].append(line[1])
+    features = []
+    for line in instances:
+        authorId, paperId = line[1], line[2]
+        features.append(d[paperId])
+    return (maxAuthorId, features)
 
 if __name__ == "__main__":
     args = parseArgs()
+    config = ConfigParser.ConfigParser()
+    config.readfp(args.config)
     ifile = args.ifile
     ofilex = open(args.outputPrefix + '.x', 'w')
     ofiley = open(args.outputPrefix + '.y', 'w')
+    instances = []
+    for line in list(csv.reader(ifile))[1:]:
+        authorId = int(line[0])
+        if len(line) == 3:      # train file
+            for paperId in map(int, line[1].split()):
+                instances.append(("+1", authorId, paperId))
+            for paperId in map(int, line[2].split()):
+                instances.append(("-1", authorId, paperId))
+        else:                   # pred file
+            for paperId in map(int, line[1].split()):
+                instances.append(("0", authorId, paperId))
+
     def genListFromCsv(filename):
         return list(csv.reader(file(args.datadir + '/' + filename)))[1:]
     authorList = genListFromCsv('Author.csv')
@@ -41,6 +63,10 @@ if __name__ == "__main__":
     paperAuthorList = genListFromCsv('PaperAuthor.csv')
     for line in paperAuthorList:
         line[0], line[1] = int(line[0]), int(line[1])
+    
+    coauthorFeatures = genCoauthorFeatures(instances,
+                                           paperAuthorList,
+                                           int(config.get('global', 'maxAuthorId')))
 
     ifile.close()
     ofilex.close()
