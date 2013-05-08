@@ -4,19 +4,19 @@ import argparse
 
 def parseArgs():
     parser = argparse.ArgumentParser(description='''\
-    example: ./sklearnToRgfTest.py -i test(valid) -o test
+    example: ./sklearnToRgfPred.py -i pred(valid) -o pred
 
-    output test.x
+    output pred.x
     inputFormat: 0\tf0,f1,f2
-    test.x's 1st line's outputFormat: sparse FEATURE_SIZE
-    test.x's rest line's outputFormat: 0:f0 1:f1 2:f2
+    pred.x's 1st line's outputFormat: sparse FEATURE_SIZE
+    pred.x's rest line's outputFormat: 0:f0 1:f1 2:f2
     ''',
     formatter_class=argparse.RawTextHelpFormatter)
 
     parser.add_argument('-i',
                         dest='input',
                         type=argparse.FileType('r'),
-                        help='sklearn test feature file',
+                        help='sklearn valid feature file',
                         required=True)
          
     parser.add_argument('-o',
