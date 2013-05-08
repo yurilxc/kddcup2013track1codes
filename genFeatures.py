@@ -39,7 +39,7 @@ class Feature:
 
 def genCoauthorFeature(instances, paperAuthorList, maxAuthorId):
     '''
-    return (sparse, [features])
+    return Feature(sparse, [features])
     '''
     d = {}
     for line in paperAuthorList:
