@@ -2,6 +2,7 @@
 
 import argparse, ConfigParser
 import csv
+from Feature import *
 
 def parseArgs():
     parser = argparse.ArgumentParser(description='''\
@@ -24,18 +25,6 @@ def parseArgs():
                         type=str, 
                         help='train/valid')
     return parser.parse_args()
-
-class Feature:
-    def __init__(self, size, lines):
-        self.__size = size
-        self.__lines = lines
-
-    @property
-    def size(self):
-        return self.__size
-    @property
-    def lines(self):
-        return self.__lines
 
 def genCoauthorFeature(instances, paperAuthorList, maxAuthorId):
     '''
