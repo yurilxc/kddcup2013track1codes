@@ -25,7 +25,22 @@ def parseArgs():
                         help='train/valid')
     return parser.parse_args()
 
-def genCoauthorFeatures(instances, paperAuthorList, maxAuthorId):
+class Feature:
+    def __init__(self, size, lines):
+        self.__size = size
+        self.__lines = lines
+
+    @property
+    def size(self):
+        return self.__size
+    @property
+    def lines(self):
+        return self.__lines
+
+def genCoauthorFeature(instances, paperAuthorList, maxAuthorId):
+    '''
+    return (sparse, [features])
+    '''
     d = {}
     for line in paperAuthorList:
         d.setdefault(line[0], [])
@@ -34,7 +49,7 @@ def genCoauthorFeatures(instances, paperAuthorList, maxAuthorId):
     for line in instances:
         authorId, paperId = line[1], line[2]
         features.append(d[paperId])
-    return (maxAuthorId, features)
+    return Feature(maxAuthorId, features)
 
 if __name__ == "__main__":
     args = parseArgs()
@@ -64,9 +79,10 @@ if __name__ == "__main__":
     for line in paperAuthorList:
         line[0], line[1] = int(line[0]), int(line[1])
     
-    coauthorFeatures = genCoauthorFeatures(instances,
-                                           paperAuthorList,
-                                           int(config.get('global', 'maxAuthorId')))
+    features = []
+    features.append(genCoauthorFeature(instances,
+                                       paperAuthorList,
+                                       int(config.get('global', 'maxAuthorId'))))
 
     ifile.close()
     ofilex.close()
