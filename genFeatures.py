@@ -73,6 +73,11 @@ if __name__ == "__main__":
                                        paperAuthorList,
                                        int(config.get('global', 'maxAuthorId'))))
 
+    mergedFeature = Feature.mergeFeatures(*features)
+    ofilex.write(mergedFeature.toString())
+    for instance in instances:
+        ofiley.write(instance[0] + '\n')
+
     ifile.close()
     ofilex.close()
     ofiley.close()

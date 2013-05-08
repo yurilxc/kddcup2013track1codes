@@ -1,7 +1,7 @@
 class Feature:
     def __init__(self, size, lines):
         """line: [(0, 1), (7, 2.3)]"""
-        self.__size = size
+        self.__size = int(size)
         self.__lines = lines
 
     def toString(self):
@@ -16,6 +16,13 @@ class Feature:
             s += ' '.join(line) + '\n'
         return s
 
+    @property
+    def size(self):
+        return self.__size
+    @property
+    def lines(self):
+        return self.__lines
+
     @staticmethod
     def fromSting(s):
         """input:
@@ -23,6 +30,7 @@ class Feature:
         0:1 1:3 7:8
         1:2 3:2.3 7:3.0
         ..."""
+        s = s.strip()
         size = int(s.split('\n')[0].strip()[len('sparse'):])
         lines = []
         for i, line in enumerate(s.split('\n')[1:]):
@@ -32,9 +40,16 @@ class Feature:
             lines.append(line)
         return Feature(size, lines)
         
-    @property
-    def size(self):
-        return self.__size
-    @property
-    def lines(self):
-        return self.__lines
+    @staticmethod
+    def mergeFeatures(*features):
+        offsets = [0]
+        for size in map(lambda x: x.size, features):
+            offsets.append(offsets[-1] + size)
+        size = offsets.pop()
+        lines = [[] for i in xrange(len(features[0].lines))]
+        for offset, newlines in zip(offsets, map(lambda x: x.lines, features)):
+            for lineNum, newline in enumerate(newlines):
+                for i in xrange(len(newline)):
+                    newline[i] = (newline[i][0] + offset, newline[i][1])
+                lines[lineNum] += newline
+        return Feature(size, lines)
