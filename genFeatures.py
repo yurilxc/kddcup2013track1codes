@@ -37,7 +37,7 @@ def genCoauthorFeature(instances, paperAuthorList, maxAuthorId):
     features = []
     for line in instances:
         authorId, paperId = line[1], line[2]
-        features.append(map(lambda x: str(x) + ':1', d[paperId]))
+        features.append(map(lambda x: (int(x), 1.0), d[paperId]))
     return Feature(maxAuthorId, features)
 
 if __name__ == "__main__":
