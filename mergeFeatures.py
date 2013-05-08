@@ -1,5 +1,6 @@
 #! /usr/bin/python2
 
+import sys
 import argparse
 from Feature import *
 
@@ -17,5 +18,4 @@ if __name__ == '__main__':
     args = parseArgs()
     features = map(Feature.fromSting, map(lambda x: x.read(), args.featurefiles))
     mergedFeature = Feature.mergeFeatures(*features)
-    print mergedFeature.toString()
-
+    sys.stdout.write(mergedFeature.toString())
