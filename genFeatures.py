@@ -1,14 +1,15 @@
 #! /usr/bin/python2
 
+import sys
 import argparse, ConfigParser
 import csv
 from Feature import *
 
 def parseArgs():
     parser = argparse.ArgumentParser(description='''\
-    example: ./genFeatures.py feature.conf data/ train.csv train
+    example: ./genFeatures.py feature.conf data/ < train.csv > train.x
     output: train.x train.y
-    example: ./genFeatures.py feature.conf data/ test.csv test
+    example: ./genFeatures.py feature.conf data/ < test.csv > test.x
     output: test.x test.y''', 
     formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(dest='config', 
@@ -17,13 +18,6 @@ def parseArgs():
     parser.add_argument(dest='datadir', 
                         type=str, 
                         help='directory contains Author.csv, PaperAuthor.csv, etc.')
-    parser.add_argument(metavar='INPUTFILE', 
-                        dest='ifile', 
-                        type=argparse.FileType('r'),
-                        help='train.csv/valid.csv')
-    parser.add_argument(dest='outputPrefix', 
-                        type=str, 
-                        help='train/valid')
     return parser.parse_args()
 
 def genCoauthorFeature(instances, paperAuthorList, maxAuthorId):
@@ -36,7 +30,7 @@ def genCoauthorFeature(instances, paperAuthorList, maxAuthorId):
         d[line[0]].add(line[1])
     features = []
     for line in instances:
-        authorId, paperId = line[1], line[2]
+        authorId, paperId = line[0], line[1]
         features.append(map(lambda x: (int(x), 1.0), d[paperId]))
     return Feature(maxAuthorId, features)
 
@@ -44,20 +38,17 @@ if __name__ == "__main__":
     args = parseArgs()
     config = ConfigParser.ConfigParser()
     config.readfp(args.config)
-    ifile = args.ifile
-    ofilex = open(args.outputPrefix + '.x', 'w')
-    ofiley = open(args.outputPrefix + '.y', 'w')
     instances = []
-    for line in list(csv.reader(ifile))[1:]:
+    for line in list(csv.reader(sys.stdin))[1:]:
         authorId = int(line[0])
         if len(line) == 3:      # train file
             for paperId in map(int, line[1].split()):
-                instances.append(("+1", authorId, paperId))
+                instances.append([authorId, paperId])
             for paperId in map(int, line[2].split()):
-                instances.append(("-1", authorId, paperId))
+                instances.append([authorId, paperId])
         else:                   # pred file
             for paperId in map(int, line[1].split()):
-                instances.append(("0", authorId, paperId))
+                instances.append([authorId, paperId])
 
     def genListFromCsv(filename):
         return list(csv.reader(file(args.datadir + '/' + filename)))[1:]
@@ -74,11 +65,4 @@ if __name__ == "__main__":
                                        int(config.get('global', 'maxAuthorId'))))
 
     mergedFeature = Feature.mergeFeatures(*features)
-    ofilex.write(mergedFeature.toString())
-    for instance in instances:
-        ofiley.write(instance[0] + '\n')
-
-    ifile.close()
-    ofilex.close()
-    ofiley.close()
-
+    sys.stdout.write(mergedFeature.toString())
