@@ -2,6 +2,9 @@ class Feature:
     def __init__(self, size, lines):
         """line: [(0, 1), (7, 2.3)]"""
         self.__size = int(size)
+        for line in lines:
+            for f in line:
+                assert 0 <= f[0] < size
         self.__lines = lines
 
     def toString(self):
