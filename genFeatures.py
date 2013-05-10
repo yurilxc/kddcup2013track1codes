@@ -108,5 +108,4 @@ if __name__ == "__main__":
                                        paperList,
                                        int(config.get('global', 'maxJournalId'))))
 
-    mergedFeature = Feature.mergeFeatures(*features)
-    mergedFeature.toFile(sys.stdout)
+    mergedFeature = Feature.mergeFeatures(sys.stdout, *features)

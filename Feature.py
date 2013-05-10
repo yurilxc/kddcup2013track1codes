@@ -4,7 +4,7 @@ class Feature:
     def __init__(self, size):
         self.__size = int(size)
         self.__isFixed = False
-        self.__lineFp = tempfile.TemporaryFile()
+        self.__lineFp = tempfile.TemporaryFile(dir='./tmp')
 
     def addLine(self, line):
         """line: [[0, 1], [7, 2.3]]"""
@@ -61,12 +61,12 @@ class Feature:
         return feature
         
     @staticmethod
-    def mergeFeatures(*features):
+    def mergeFeatures(fp, *features):
         offsets = [0]
         for size in map(lambda x: x.size, features):
             offsets.append(offsets[-1] + size)
         size = offsets.pop()
-        mergedFeature = Feature(size)
+        fp.write("sparse\t{:d}\n".format(size))
         iterables = map(lambda x: x.getItrerable(), features)
         while True:
             try:
@@ -75,7 +75,7 @@ class Feature:
                     for f in line:
                         f[0] += offset
                 line = reduce(operator.add, lines)
-                mergedFeature.addLine(line)
+                line = map(lambda x: str(x[0]) + ':' + str(x[1]), line)
+                fp.write(' '.join(line) + '\n')
             except StopIteration:
-                mergedFeature.fix();
-                return mergedFeature
+                break

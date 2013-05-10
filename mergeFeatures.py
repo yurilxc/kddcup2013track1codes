@@ -15,10 +15,10 @@ def parseArgs():
     return parser.parse_args()
 
 if __name__ == '__main__':
+    sys.stderr.write('mergeFeatures\n')
     args = parseArgs()
     features = map(Feature.fromFile, args.featurefiles)
-    mergedFeature = Feature.mergeFeatures(*features)
-    mergedFeature.toFile(sys.stdout)
+    mergedFeature = Feature.mergeFeatures(sys.stdout, *features)
 
 
 
