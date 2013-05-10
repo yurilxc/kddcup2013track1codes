@@ -29,11 +29,12 @@ def genCoauthorFeature(instances, paperAuthorList, maxAuthorId):
     for line in paperAuthorList:
         d.setdefault(line[0], set())
         d[line[0]].add(line[1])
-    features = []
+    feature = Feature(maxAuthorId)
     for line in instances:
         authorId, paperId = line[0], line[1]
-        features.append(map(lambda x: (int(x), 1.0), d[paperId]))
-    return Feature(maxAuthorId, features)
+        feature.addLine(map(lambda x: [int(x), 1.0], d[paperId]))
+    feature.fix()
+    return feature
 
 def genConferenceIdFeature(instances, paperList, maxConferenceId):
     sys.stderr.write("genConferenceIdFeature\n")
@@ -42,12 +43,13 @@ def genConferenceIdFeature(instances, paperList, maxConferenceId):
         paperId = int(line[0])
         conferenceId = int(line[3])
         d[paperId] = conferenceId
-    lines = []
+    feature = Feature(maxConferenceId)
     for instance in instances:
         authorId, paperId = instance[0], instance[1]
         conferenceId = d[paperId] + 1 # -1
-        lines.append([(conferenceId, 1.0)])
-    return Feature(maxConferenceId, lines)
+        feature.addLine([[conferenceId, 1.0]])
+    feature.fix()
+    return feature
 
 def genJournalIdFeature(instances, paperList, maxJournalId):
     sys.stderr.write("genJournalIdFeature\n")
@@ -56,12 +58,13 @@ def genJournalIdFeature(instances, paperList, maxJournalId):
         paperId = int(line[0])
         journalId = int(line[4])
         d[paperId] = journalId
-    lines = []
+    feature = Feature(maxJournalId)
     for instance in instances:
         authorId, paperId = instance[0], instance[1]
         journalId = d[paperId] + 1 # -1
-        lines.append([(journalId, 1.0)])
-    return Feature(maxJournalId, lines)
+        feature.addLine([[journalId, 1.0]])
+    feature.fix()
+    return feature
         
 
 if __name__ == "__main__":
@@ -106,4 +109,4 @@ if __name__ == "__main__":
                                        int(config.get('global', 'maxJournalId'))))
 
     mergedFeature = Feature.mergeFeatures(*features)
-    sys.stdout.write(mergedFeature.toString())
+    mergedFeature.toFile(sys.stdout)

@@ -16,6 +16,14 @@ def parseArgs():
 
 if __name__ == '__main__':
     args = parseArgs()
-    features = map(Feature.fromSting, map(lambda x: x.read(), args.featurefiles))
+    features = map(Feature.fromFile, args.featurefiles)
     mergedFeature = Feature.mergeFeatures(*features)
-    sys.stdout.write(mergedFeature.toString())
+    mergedFeature.toFile(sys.stdout)
+
+
+
+
+
+
+
+
