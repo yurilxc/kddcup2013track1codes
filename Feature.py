@@ -1,23 +1,40 @@
-class Feature:
-    def __init__(self, size, lines):
-        """line: [(0, 1), (7, 2.3)]"""
-        self.__size = int(size)
-        for line in lines:
-            for f in line:
-                assert 0 <= f[0] < size
-        self.__lines = lines
+import tempfile, operator
 
-    def toString(self):
+class Feature:
+    def __init__(self, size):
+        self.__size = int(size)
+        self.__isFixed = False
+        self.__lineFp = tempfile.TemporaryFile()
+
+    def addLine(self, line):
+        """line: [[0, 1], [7, 2.3]]"""
+        assert not self.__isFixed
+        for f in line:
+            assert 0 <= f[0] < self.size
+        self.__lineFp.write(repr(line) + '\n')
+
+    def fix(self):
+        self.__isFixed = True
+        self.__lineFp.seek(0)
+
+    def getItrerable(self):
+        self.fix()
+        while True:
+            line = self.__lineFp.readline()
+            if line == '':
+                break
+            yield eval(line)
+
+    def toFile(self, fp):
         """return:
         sparse\t8
         0:1 1:3 7:8
         1:2 3:2.3 7:3.0
         ..."""
-        s = "sparse\t{:d}\n".format(self.size)
-        for line in self.lines:
+        fp.write("sparse\t{:d}\n".format(self.size))
+        for line in self.getItrerable():
             line = map(lambda x: str(x[0]) + ':' + str(x[1]), line)
-            s += ' '.join(line) + '\n'
-        return s
+            fp.write(' '.join(line) + '\n')
 
     @property
     def size(self):
@@ -27,21 +44,21 @@ class Feature:
         return self.__lines
 
     @staticmethod
-    def fromSting(s):
+    def fromFile(fp):
         """input:
         sparse\t8
         0:1 1:3 7:8
         1:2 3:2.3 7:3.0
         ..."""
-        s = s.strip()
-        size = int(s.split('\n')[0].strip()[len('sparse'):])
-        lines = []
-        for i, line in enumerate(s.split('\n')[1:]):
+        size = int(fp.readline().split('\n')[0].strip()[len('sparse'):])
+        feature = Feature(size)
+        for i, line in enumerate(fp):
             line = line.split()
             line = map(lambda x: x.split(':'), line)
-            line = map(lambda x: (int(x[0]), float(x[1])), line)
-            lines.append(line)
-        return Feature(size, lines)
+            line = map(lambda x: [int(x[0]), float(x[1])], line)
+            feature.addLine(line)
+        feature.fix()
+        return feature
         
     @staticmethod
     def mergeFeatures(*features):
@@ -49,10 +66,16 @@ class Feature:
         for size in map(lambda x: x.size, features):
             offsets.append(offsets[-1] + size)
         size = offsets.pop()
-        lines = [[] for i in xrange(len(features[0].lines))]
-        for offset, newlines in zip(offsets, map(lambda x: x.lines, features)):
-            for lineNum, newline in enumerate(newlines):
-                for i in xrange(len(newline)):
-                    newline[i] = (newline[i][0] + offset, newline[i][1])
-                lines[lineNum] += newline
-        return Feature(size, lines)
+        mergedFeature = Feature(size)
+        iterables = map(lambda x: x.getItrerable(), features)
+        while True:
+            try:
+                lines = map(lambda x: x.next(), iterables)
+                for offset, line in zip(offsets, lines):
+                    for f in line:
+                        f[0] += offset
+                line = reduce(operator.add, lines)
+                mergedFeature.addLine(line)
+            except StopIteration:
+                mergedFeature.fix();
+                return mergedFeature
