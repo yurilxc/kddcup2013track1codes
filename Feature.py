@@ -1,4 +1,5 @@
 import tempfile, operator
+from Counter import Counter
 
 class Feature:
     def __init__(self, size):
@@ -68,7 +69,9 @@ class Feature:
         size = offsets.pop()
         fp.write("sparse\t{:d}\n".format(size))
         iterables = map(lambda x: x.getItrerable(), features)
+        counter = Counter("mergeFeatures", 100)
         while True:
+            counter.inc()
             try:
                 lines = map(lambda x: x.next(), iterables)
                 for offset, line in zip(offsets, lines):
