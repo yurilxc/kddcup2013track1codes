@@ -29,12 +29,16 @@ def genCoauthorFeature(instances, pathFname, maxAuthorId):
     paperAuthorDict = {}
     csvReader = csv.reader(file(pathFname))
     csvReader.next()
+    counter = Counter("paperAuthorDict")
     for line in csvReader:
+        counter.inc()
         authorId, paperId = int(line[0]), int(line[1])
         paperAuthorDict.setdefault(authorId, set())
         paperAuthorDict[authorId].add(paperId)
     feature = Feature(maxAuthorId)
+    counter = Counter("instance", 1000)
     for line in instances:
+        counter.inc()
         authorId, paperId = line[0], line[1]
         feature.addLine(map(lambda x: [int(x), 1.0], paperAuthorDict[paperId]))
     feature.fix()
