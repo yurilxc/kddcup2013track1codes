@@ -21,19 +21,22 @@ def parseArgs():
                         help='directory contains Author.csv, PaperAuthor.csv, etc.')
     return parser.parse_args()
 
-def genCoauthorFeature(instances, paperAuthorList, maxAuthorId):
+def genCoauthorFeature(instances, pathFname, maxAuthorId):
     '''
     return Feature(sparse, [features])
     '''
     sys.stderr.write("genCoauthorFeature\n")
-    d = {}
-    for line in paperAuthorList:
-        d.setdefault(line[0], set())
-        d[line[0]].add(line[1])
+    paperAuthorDict = {}
+    csvReader = csv.reader(file(pathFname))
+    csvReader.next()
+    for line in csvReader:
+        authorId, paperId = int(line[0]), int(line[1])
+        paperAuthorDict.setdefault(authorId, set())
+        paperAuthorDict[authorId].add(paperId)
     feature = Feature(maxAuthorId)
     for line in instances:
         authorId, paperId = line[0], line[1]
-        feature.addLine(map(lambda x: [int(x), 1.0], d[paperId]))
+        feature.addLine(map(lambda x: [int(x), 1.0], paperAuthorDict[paperId]))
     feature.fix()
     return feature
 
@@ -88,9 +91,7 @@ if __name__ == "__main__":
     authorList = genListFromCsv('Author.csv')
     for line in authorList:
         line[0] = int(line[0])
-    paperAuthorList = genListFromCsv('PaperAuthor.csv')
-    for line in paperAuthorList:
-        line[0], line[1] = int(line[0]), int(line[1])
+    paperAuthorPathFname = args.datadir + "/PaperAuthor.csv"
     paperList = genListFromCsv('Paper.csv')
     for line in paperList:
         line[0] = int(line[0])
@@ -99,7 +100,7 @@ if __name__ == "__main__":
         line[4] = int(line[4])
     features = []
     features.append(genCoauthorFeature(instances,
-                                       paperAuthorList,
+                                       paperAuthorPathFname, 
                                        int(config.get('global', 'maxAuthorId'))))
     features.append(genConferenceIdFeature(instances,
                                            paperList,
