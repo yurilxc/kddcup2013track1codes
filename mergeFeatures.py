@@ -18,7 +18,7 @@ if __name__ == '__main__':
     sys.stderr.write('mergeFeatures\n')
     args = parseArgs()
     features = map(Feature.fromFile, args.featurefiles)
-    mergedFeature = Feature.mergeFeatures(sys.stdout, *features)
+    Feature.mergeFeaturesToFile(sys.stdout, *features)
 
 
 

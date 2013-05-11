@@ -4,6 +4,7 @@ import sys
 import argparse, ConfigParser
 import csv
 from Feature import *
+from Counter import Counter
 
 def parseArgs():
     parser = argparse.ArgumentParser(description='''\
@@ -65,7 +66,6 @@ def genJournalIdFeature(instances, paperList, maxJournalId):
         feature.addLine([[journalId, 1.0]])
     feature.fix()
     return feature
-        
 
 if __name__ == "__main__":
     args = parseArgs()
@@ -102,10 +102,10 @@ if __name__ == "__main__":
                                        paperAuthorList,
                                        int(config.get('global', 'maxAuthorId'))))
     features.append(genConferenceIdFeature(instances,
-                                          paperList,
-                                          int(config.get('global', 'maxConferenceId'))))
+                                           paperList,
+                                           int(config.get('global', 'maxConferenceId'))))
     features.append(genJournalIdFeature(instances,
-                                       paperList,
-                                       int(config.get('global', 'maxJournalId'))))
+                                        paperList,
+                                        int(config.get('global', 'maxJournalId'))))
 
-    mergedFeature = Feature.mergeFeatures(sys.stdout, *features)
+    Feature.mergeFeaturesToFile(sys.stdout, *features)

@@ -62,7 +62,7 @@ class Feature:
         return feature
         
     @staticmethod
-    def mergeFeatures(fp, *features):
+    def mergeFeaturesToFile(fp, *features):
         offsets = [0]
         for size in map(lambda x: x.size, features):
             offsets.append(offsets[-1] + size)
