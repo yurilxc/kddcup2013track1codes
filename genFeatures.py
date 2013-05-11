@@ -98,10 +98,8 @@ if __name__ == "__main__":
     paperAuthorPathFname = args.datadir + "/PaperAuthor.csv"
     paperList = genListFromCsv('Paper.csv')
     for line in paperList:
-        line[0] = int(line[0])
-        line[2] = int(line[2])
-        line[3] = int(line[3])
-        line[4] = int(line[4])
+        for i in [0, 2, 3, 4]:
+            line[i] = int(line[i])
     features = []
     features.append(genCoauthorFeature(instances,
                                        paperAuthorPathFname, 
